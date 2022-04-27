@@ -36,14 +36,3 @@ amplify push
 ## Create a file upload button
 
 hot load of react https://stackoverflow.com/a/65171489/4569908
-
-#TODO NEXT STEPS
-
-to upload files to S3 and lambda, api
-
-https://www.youtube.com/watch?v=IgAE-ycnb94 done
-foobar: https://www.youtube.com/watch?v=cJUtkerwIQM
-send email from lambda https://www.youtube.com/watch?v=I_7g3t08BEE
-    https://stackoverflow.com/questions/42627341/send-notification-alert-when-aws-lambda-function-has-an-error
-    https://aws.amazon.com/blogs/mt/get-notified-specific-lambda-function-error-patterns-using-cloudwatch/
-

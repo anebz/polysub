@@ -24,8 +24,7 @@ class App extends Component {
       this.state.selectedFile.name
     )
     // call api to upload file
-    // `${process.env.REACT_APP_ENDPOINT}step1`
-    axios.post(`https://19c2sjcjb2.execute-api.eu-central-1.amazonaws.com/prod/step1`, formData).then(response => {
+    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, formData).then(response => {
       console.log(response.data.result);
       this.setState({ selectedFile: false })
       this.setState({ fileUploadedSuccessfully: true });

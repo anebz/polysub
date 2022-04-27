@@ -59,7 +59,7 @@ export class AmplifyInfraStack extends cdk.Stack {
         oauthToken: cdk.SecretValue.secretsManager('github-token') // token stored in aws secrets manager
       }),
       environmentVariables: {
-        'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO,
+        'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
         'ENDPOINT': myAPIGateway.url,
         'REGION': this.region
       }
