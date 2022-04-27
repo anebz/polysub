@@ -35,7 +35,7 @@ export class AmplifyInfraStack extends cdk.Stack {
     myBucket.grantWrite(myLambda);
 
     // API Gateway
-    const myAPIGateway = new apigw.RestApi(this, 'polysub-api', {
+    const myApiGW = new apigw.RestApi(this, 'polysub-api', {
       defaultCorsPreflightOptions: {
         allowOrigins: apigw.Cors.ALL_ORIGINS,
         allowMethods: apigw.Cors.ALL_METHODS,
@@ -43,12 +43,12 @@ export class AmplifyInfraStack extends cdk.Stack {
       }
     });
 
-    myAPIGateway.root
+    myApiGW.root
       .resourceForPath("translate")
       .addMethod("POST", new apigw.LambdaIntegration(myLambda));
     
     new cdk.CfnOutput(this, "HTTP API URL", {
-      value: myAPIGateway.url ?? "Something went wrong with the deploy",
+      value: myApiGW.url ?? "Something went wrong with the deploy",
     });
 
     // Amplify app
@@ -60,7 +60,7 @@ export class AmplifyInfraStack extends cdk.Stack {
       }),
       environmentVariables: {
         'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
-        'ENDPOINT': myAPIGateway.url,
+        'ENDPOINT': myApiGW.url,
         'REGION': this.region
       }
     });

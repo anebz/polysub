@@ -11,7 +11,6 @@ applications:
             # transform .ts env variables to react env vars
             - echo "REACT_APP_ENDPOINT=$ENDPOINT" >> .env
             - echo "REACT_APP_REGION=$REGION" >> .env
-            - echo "REACT_APP_AMPLIFY_MONOREPO_APP_ROOT=$AMPLIFY_MONOREPO_APP_ROOT" >> .env
             - npm run build
       artifacts:
         baseDirectory: build

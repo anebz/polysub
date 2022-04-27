@@ -1,3 +1,7 @@
+# subtitle-translator
+
+When creating Aplify app for the first time, Github connection might not work. In the console, reconfigure and connect again. Then re-build the frontend
+
 https://www.youtube.com/watch?v=mSKQlV3lRYw
 
 https://www.youtube.com/watch?v=tw9cQyA3B1M
