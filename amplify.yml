@@ -1,6 +1,6 @@
 version: 1
 applications:
-  - appRoot: $AMPLIFY_MONOREPO_APP_ROOT
+  - appRoot: frontend/
   frontend:
     phases:
       preBuild:
