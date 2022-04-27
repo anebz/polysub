@@ -1,0 +1,19 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        # transform .ts env variables to react env vars
+        - echo "REACT_APP_ENDPOINT=$ENDPOINT" >> .env
+        - echo "REACT_APP_REGION=$REGION" >> .env
+        - npm run build
+  artifacts:
+    baseDirectory: build
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
