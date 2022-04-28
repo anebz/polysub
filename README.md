@@ -20,10 +20,16 @@ cdk init --language typescript
 npm install @aws-cdk/aws-amplify @aws-cdk/aws-lambda @aws-cdk/aws-apigateway 
 ```
 
-Build CDK components in backend/lib/backend-stack.ts
+Build CDK components in backend/lib/backend-stack.ts.
+
+Have all @aws-cdk components in the same version!
+https://github.com/aws/aws-cdk/issues/3416
+https://github.com/aws/aws-cdk/issues/14738
+
 
 ```bash
-npm run build
+npm udate # to update nodejs dependencies?
+npm run build # important! https://github.com/aws/aws-cdk/issues/2083
 cdk synth
 cdk deploy
 ```

@@ -7,6 +7,7 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as s3 from '@aws-cdk/aws-s3';
 import * as path from 'path';
+import { PythonFunction } from "@aws-cdk/aws-lambda-python";
 
 const GITHUB_REPO = 'subtitle-translator'
 const GITHUB_REPO_PATH = 'frontend'
@@ -23,9 +24,31 @@ export class AmplifyInfraStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
+    /*
     const myLambda = new lambda.Function(this, 'PolySubLambda', {
-      runtime: lambda.Runtime.PYTHON_3_7, //NODEJS_14_X
-      handler: 'handler.lambda_handler', // handler.handler for nodejs
+      runtime: lambda.Runtime.PYTHON_3_7,
+      handler: 'handler.lambda_handler',
+      code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
+      environment: {
+        "S3_BUCKET_NAME": myBucket.bucketName
+      }
+    });
+    */
+
+    const myLambda = new PythonFunction(this, 'PolySubLambda', {
+      entry: 'lib/lambda', // required
+      index: 'handler.py', // optional, defaults to 'index.py'
+      handler: 'lambda_handler', // optional, defaults to 'handler'
+      runtime: lambda.Runtime.PYTHON_3_8, // optional, defaults to lambda.Runtime.PYTHON_3_7
+      environment: {
+        "S3_BUCKET_NAME": myBucket.bucketName
+      }
+    });
+
+    // TODO delete all dummy once it's implemented
+    const myLambdaDummy = new lambda.Function(this, 'DummyLambda', {
+      runtime: lambda.Runtime.PYTHON_3_7,
+      handler: 'handler_dummy.lambda_handler',
       code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
       environment: {
         "S3_BUCKET_NAME": myBucket.bucketName
@@ -33,6 +56,8 @@ export class AmplifyInfraStack extends cdk.Stack {
     });
     myBucket.grantRead(myLambda);
     myBucket.grantWrite(myLambda);
+    myBucket.grantRead(myLambdaDummy);
+    myBucket.grantWrite(myLambdaDummy);
 
     // API Gateway
     const myApiGW = new apigw.RestApi(this, 'polysub-api', {
