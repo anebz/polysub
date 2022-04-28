@@ -20,12 +20,12 @@
     "typescript": "~4.6.3"
   },
   "dependencies": {
-    "@aws-cdk/aws-amplify": "1.138.0",
-    "@aws-cdk/aws-apigateway": "1.138.0",
-    "@aws-cdk/aws-lambda": "1.138.0",
-    "@aws-cdk/aws-lambda-python": "1.138.0",
-    "@aws-cdk/aws-s3": "1.138.0",
-    "@aws-cdk/core": "1.138.0",
+    "@aws-cdk/aws-amplify": "1.139.0",
+    "@aws-cdk/aws-apigateway": "1.139.0",
+    "@aws-cdk/aws-lambda": "1.139.0",
+    "@aws-cdk/aws-lambda-python": "1.139.0",
+    "@aws-cdk/aws-s3": "1.139.0",
+    "@aws-cdk/core": "1.139.0",
     "aws-cdk-lib": "^2.20.0",
     "constructs": "^10.0.113",
     "source-map-support": "^0.5.21"

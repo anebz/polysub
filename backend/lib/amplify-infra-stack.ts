@@ -38,7 +38,7 @@ export class AmplifyInfraStack extends cdk.Stack {
     const myLambda = new PythonFunction(this, 'PolySubLambda', {
       entry: 'lib/lambda', // required
       index: 'handler.py', // optional, defaults to 'index.py'
-      handler: 'lambda_handler', // optional, defaults to 'handler'
+      handler: 'handler', // optional, defaults to 'handler'
       runtime: lambda.Runtime.PYTHON_3_8, // optional, defaults to lambda.Runtime.PYTHON_3_7
       environment: {
         "S3_BUCKET_NAME": myBucket.bucketName

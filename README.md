@@ -26,6 +26,7 @@ Have all @aws-cdk components in the same version!
 https://github.com/aws/aws-cdk/issues/3416
 https://github.com/aws/aws-cdk/issues/14738
 
+lambda python with requirements https://docs.aws.amazon.com/cdk/api/v1/docs/aws-lambda-python-readme.html
 
 ```bash
 npm udate # to update nodejs dependencies?
