@@ -4,13 +4,20 @@ import json
 import boto3
 from datetime import datetime
 from collections import OrderedDict
-from transformers import pipeline
+#from transformers import AutoConfig, pipeline
+import sagemaker
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
 
 s3 = boto3.client("s3")
 subdata = OrderedDict()
 
-def load_model(lang_origin: str, lang_target: str):
-    return pipeline("translation", model=f"Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}")
+#def load_model(lang_origin: str, lang_target: str):
+#    pretrained_checkpoint = f"Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"
+#    # download config and save to file
+#    config = AutoConfig.from_pretrained(pretrained_checkpoint)
+#    config.to_json_file('config.json')
+#    return pipeline("translation", model=pretrained_checkpoint)
 
 def parse_input_data(text: list) -> OrderedDict:
     parsed_data = OrderedDict()
@@ -74,7 +81,7 @@ def join_all_text(parsed_data: OrderedDict):
 
 
 
-def lambda_handler(event, context):
+def handler(event, context):
 
     if event["httpMethod"] == 'POST':
         req_body = event['body']
@@ -84,10 +91,16 @@ def lambda_handler(event, context):
         ## Translation step ##
         lang_origin = 'es'
         lang_target = 'en'
-        translator = load_model(lang_origin, lang_target)
+        #translator = load_model(lang_origin, lang_target)
+        endpoint_name = 'translation-es-en'
+        predictor = Predictor(endpoint_name=endpoint_name, sagemaker_session=sagemaker.Session(), serializer=JSONSerializer())
         parsed_data = parse_input_data(file_contents)
         joined_text = join_all_text(parsed_data)
-        translated_text = [translator(sentence)[0]['translation_text'] for sentence in joined_text]
+        #translated_text = [translator(sentence)[0]['translation_text'] for sentence in joined_text]
+
+        translated_text = []
+        for sentence in joined_text[:20]:
+            translated_text.append(json.loads(predictor.predict({ 'inputs': sentence }).decode('utf-8'))[0]['translation_text'])
 
         '''
         PART 4: replace translated text in the sub file

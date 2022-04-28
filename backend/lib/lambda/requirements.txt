@@ -1,2 +1,3 @@
 boto3
-transformers
+sagemaker==2.88.1
+transformers==4.18.0
