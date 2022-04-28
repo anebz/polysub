@@ -3,7 +3,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as amplify from '@aws-cdk/aws-amplify';
-import * as lambda from "@aws-cdk/aws-lambda";
+import * as lambda from "@aws-cdk/aws-lambda"; //TODO clean up unused libraries when lambda works
 import * as apigw from "@aws-cdk/aws-apigateway";
 import * as s3 from '@aws-cdk/aws-s3';
 import * as path from 'path';
@@ -44,7 +44,20 @@ export class AmplifyInfraStack extends cdk.Stack {
         "S3_BUCKET_NAME": myBucket.bucketName
       }
     });
+    myBucket.grantRead(myLambda);
+    myBucket.grantWrite(myLambda);
 
+    const SagemakerInvokeEndpointPolicy = new iam.PolicyStatement({
+      actions: ['sagemaker:InvokeEndpoint'],
+      resources: ['arn:aws:sagemaker:::*'],
+    });
+    myLambda.role?.attachInlinePolicy(
+      new iam.Policy(this, 'sg-invoke-endpoint', {
+        statements: [SagemakerInvokeEndpointPolicy],
+      }),
+    );
+
+    /*
     // TODO delete all dummy once it's implemented
     const myLambdaDummy = new lambda.Function(this, 'DummyLambda', {
       runtime: lambda.Runtime.PYTHON_3_7,
@@ -54,10 +67,9 @@ export class AmplifyInfraStack extends cdk.Stack {
         "S3_BUCKET_NAME": myBucket.bucketName
       }
     });
-    myBucket.grantRead(myLambda);
-    myBucket.grantWrite(myLambda);
     myBucket.grantRead(myLambdaDummy);
     myBucket.grantWrite(myLambdaDummy);
+    */
 
     // API Gateway
     const myApiGW = new apigw.RestApi(this, 'polysub-api', {

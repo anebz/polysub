@@ -4,20 +4,14 @@ import json
 import boto3
 from datetime import datetime
 from collections import OrderedDict
-#from transformers import AutoConfig, pipeline
 import sagemaker
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
+# transformers==4.18.0
 
 s3 = boto3.client("s3")
+runtime = boto3.client('runtime.sagemaker')
 subdata = OrderedDict()
-
-#def load_model(lang_origin: str, lang_target: str):
-#    pretrained_checkpoint = f"Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"
-#    # download config and save to file
-#    config = AutoConfig.from_pretrained(pretrained_checkpoint)
-#    config.to_json_file('config.json')
-#    return pipeline("translation", model=pretrained_checkpoint)
 
 def parse_input_data(text: list) -> OrderedDict:
     parsed_data = OrderedDict()
@@ -51,20 +45,27 @@ def join_all_text(parsed_data: OrderedDict):
 
         if len(joined_text) > 0 and joined_text[-1] != '\n':
             joined_text += ' '
+        
+        '''
+        # get current time, first time of this line
+        current_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[0]
 
         if prev_time == '':
             # take the last time of the sequence
-            prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
+            try:
+                prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
+            except Exception:
+                prev_time = current_time
 
         # check if a lot of time has passed since the last text. if so, this is a new sentence
-        # get current time, first time of this line
-        current_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[0]
         tdelta = (datetime.strptime(current_time, '%H:%M:%S') - datetime.strptime(prev_time, '%H:%M:%S')).total_seconds()
         if int(tdelta) > 10 and joined_text[-1] != '\n':
             joined_text += '\n' + text
             it += 1
         else:
             joined_text += text
+        '''
+        joined_text += text # TEMPORARY
         parsed_data[id]['map'] = it
 
         # check if text ends in punctuation. if so, it's the end of the sentence
@@ -72,13 +73,17 @@ def join_all_text(parsed_data: OrderedDict):
             joined_text += '\n'
             it += 1
         
-        prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
+        '''
+        try:
+            prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
+        except Exception:
+            prev_time = current_time
+        '''
 
     joined_text = joined_text.split('\n')
     if joined_text[-1] == '':
         joined_text = joined_text[:-1]
     return joined_text
-
 
 
 def handler(event, context):
