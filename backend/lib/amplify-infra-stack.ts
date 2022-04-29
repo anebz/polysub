@@ -39,6 +39,7 @@ export class AmplifyInfraStack extends cdk.Stack {
       entry: 'lib/lambda', // required
       index: 'handler.py', // optional, defaults to 'index.py'
       handler: 'handler', // optional, defaults to 'handler'
+      timeout: cdk.Duration.seconds(900), // default duration is 3s
       runtime: lambda.Runtime.PYTHON_3_8, // optional, defaults to lambda.Runtime.PYTHON_3_7
       environment: {
         "S3_BUCKET_NAME": myBucket.bucketName
@@ -49,8 +50,8 @@ export class AmplifyInfraStack extends cdk.Stack {
 
     const SagemakerInvokeEndpointPolicy = new iam.PolicyStatement({
       actions: ['sagemaker:InvokeEndpoint'],
-      resources: ['arn:aws:sagemaker:::*'],
-    });
+      resources: ['*'], // policy simulator https://policysim.aws.amazon.com
+    }); // create policy in iam console and copy the actions/resources, then check in policy simulator
     myLambda.role?.attachInlinePolicy(
       new iam.Policy(this, 'sg-invoke-endpoint', {
         statements: [SagemakerInvokeEndpointPolicy],

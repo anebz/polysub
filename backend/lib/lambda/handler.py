@@ -1,41 +1,18 @@
 import os
 import re
+import srt
 import json
 import boto3
 from datetime import datetime
-from collections import OrderedDict
 import sagemaker
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
-# transformers==4.18.0
 
 s3 = boto3.client("s3")
-runtime = boto3.client('runtime.sagemaker')
-subdata = OrderedDict()
+runtime = boto3.client('runtime.sagemaker', region_name='eu-central-1')
 
-def parse_input_data(text: list) -> OrderedDict:
-    parsed_data = OrderedDict()
-    chunk = []
-
-    for line in text:
-        if line == '':
-            if len(chunk) > 0:
-                parsed_data[int(chunk[0])] = {
-                    'time': chunk[1],
-                    'text': ' '.join(chunk[2:])
-                }
-            chunk = []
-        if line.isnumeric() or len(chunk) != 0:
-            chunk.append(line)
-    if len(chunk) > 0:
-        parsed_data[int(chunk[0])] = {
-            'time': chunk[1],
-            'text': ' '.join(chunk[2:])
-        }
-    return parsed_data
-
-
-def join_all_text(parsed_data: OrderedDict):
+# TODO improve sentence joining algorithm
+def join_all_text(parsed_data: list):
     joined_text = ''
     prev_time = ''
     it = 0
@@ -92,42 +69,29 @@ def handler(event, context):
         req_body = event['body']
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         file_contents = '\n'.join(req_body.split('\r\n')[4:-2])
+        print('filename', file_name)
+        print(file_contents.split('\n'))
 
         ## Translation step ##
         lang_origin = 'es'
         lang_target = 'en'
-        #translator = load_model(lang_origin, lang_target)
-        endpoint_name = 'translation-es-en'
+        endpoint_name = f'translation-{lang_origin}-{lang_target}'
         predictor = Predictor(endpoint_name=endpoint_name, sagemaker_session=sagemaker.Session(), serializer=JSONSerializer())
-        parsed_data = parse_input_data(file_contents)
-        joined_text = join_all_text(parsed_data)
-        #translated_text = [translator(sentence)[0]['translation_text'] for sentence in joined_text]
+        
+        ## Parse input content into subtitles format ##
+        subs = list(srt.parse(file_contents))
+        joined_text = [sub.content for sub in subs]
+        print('text to translate', joined_text)
 
-        translated_text = []
-        for sentence in joined_text[:20]:
-            translated_text.append(json.loads(predictor.predict({ 'inputs': sentence }).decode('utf-8'))[0]['translation_text'])
+        ## invoke Sagemaker endpoint and obtain results ##
+        response = runtime.invoke_endpoint(EndpointName=endpoint_name, ContentType='application/json', Body=json.dumps({'inputs': joined_text}))
+        translated_text = [el['translation_text'] for el in json.loads(response['Body'].read().decode())]
+        print('translated text', translated_text)
 
-        '''
-        PART 4: replace translated text in the sub file
-        dummy mode: replace all excerpts of a "sentence" by the whole translated sentence
-        since we have no alignments
-        '''
-        transdata = OrderedDict()
-        for key, vals in parsed_data.items():
-            transdata[key] = {
-                'time': vals['time'],
-                'text': translated_text[vals['map']]
-            }
-
-        '''
-        PART 5: write translated data into .srt
-        '''
-        final_str = ''
-        for key, vals in transdata.items():
-            final_str += str(key) + '\n'
-            final_str += vals['time'] + '\n'
-            final_str += vals['text'] + '\n'
-            final_str += '\n'
+        for sub, translated in zip(subs, translated_text):
+            sub.content = translated
+        final_str = srt.compose(subs)
+        print('final_string', final_str)
 
         # TODO maybe just upload info without saving and uploading file?
         with open(f"/tmp/{file_name}", 'w') as f:
