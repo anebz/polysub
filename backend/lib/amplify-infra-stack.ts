@@ -9,7 +9,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as path from 'path';
 import { PythonFunction } from "@aws-cdk/aws-lambda-python";
 
-const GITHUB_REPO = 'subtitle-translator'
+const GITHUB_REPO = 'polysub'
 const GITHUB_REPO_PATH = 'frontend'
 
 export class AmplifyInfraStack extends cdk.Stack {
