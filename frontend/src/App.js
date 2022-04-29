@@ -45,7 +45,10 @@ class App extends Component {
       return (
         <div>
           <br />
-          <h4>{this.state.APIResult}</h4>
+          <h4>File translated successfully</h4>
+          <button onClick={() => { window.open(this.state.APIResult, "_blank"); }}>
+            Download your translated file
+          </button>
         </div>
       )
     } else {

@@ -104,7 +104,7 @@ def handler(event, context):
         presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': file_name}, ExpiresIn=300) # 5mins
 
         statusCode = 200
-        result = f"file {file_name} uploaded. Download here: {presigned_url}"
+        result = presigned_url
     else:
         statusCode = 500
         result = "error"
