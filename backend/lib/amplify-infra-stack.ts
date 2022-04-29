@@ -18,10 +18,16 @@ export class AmplifyInfraStack extends cdk.Stack {
 
     // S3 bucket and Lambda function
     const myBucket = new s3.Bucket(this, 'polysub-bucket', {
-      versioned: false,
       bucketName: 'polysub-bucket',
+      versioned: false,
       publicReadAccess: false,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      lifecycleRules: [
+        {
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+          expiration: cdk.Duration.days(1)
+        }
+      ]
     });
 
     /*

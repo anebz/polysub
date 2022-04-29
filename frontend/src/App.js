@@ -28,6 +28,7 @@ class App extends Component {
       console.log(response.data.result);
       this.setState({ selectedFile: false })
       this.setState({ fileUploadedSuccessfully: true });
+      this.setState({ APIResult: response.data.result });
     })
   }
 
@@ -44,7 +45,7 @@ class App extends Component {
       return (
         <div>
           <br />
-          <h4>Your file has been successfully uploaded</h4>
+          <h4>{this.state.APIResult}</h4>
         </div>
       )
     } else {

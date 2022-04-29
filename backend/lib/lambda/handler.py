@@ -100,8 +100,11 @@ def handler(event, context):
         # TODO give the new file a better name
         s3.upload_file(f"/tmp/{file_name}", os.environ['S3_BUCKET_NAME'], file_name)
 
+        # obtain pre-signed url
+        presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': file_name}, ExpiresIn=300) # 5mins
+
         statusCode = 200
-        result = f"file {file_name} uploaded"
+        result = f"file {file_name} uploaded. Download here: {presigned_url}"
     else:
         statusCode = 500
         result = "error"
