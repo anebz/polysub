@@ -47,11 +47,9 @@ class App extends Component {
   onFileUpload = () => {
     const formData = new FormData();
     formData.append(
-      "demo files",
-      this.state.selectedFile,
+      `${this.state.origLang}-${this.state.targetLang}`,
       this.state.selectedFile.name,
-      this.state.origLang,
-      this.state.targetLang
+      this.state.selectedFile
     );
 
     // call api to upload file
