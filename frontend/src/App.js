@@ -35,20 +35,9 @@ class App extends Component {
       this.state.selectedFile,
       this.state.selectedFile.name
     );
-    const headers = {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-      "Access-Control-Allow-Methods": "OPTIONS,POST",
-      "Access-Control-Allow-Credentials": true,
-      "Access-Control-Allow-Origin": "*",
-      "X-Requested-With": "*"
-    };
 
     // call api to upload file
-    axios.post(
-      `${process.env.REACT_APP_ENDPOINT}translate`,
-      { headers: headers },
-      formData)
+    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`,formData)
     .then(response => {
       console.log(response.data.result);
       this.setState({ selectedFile: false })
