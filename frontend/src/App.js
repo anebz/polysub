@@ -3,7 +3,7 @@ import './App.css';
 import axios from 'axios'
 
 const langs = {
-  'en': ['de', 'zh', 'fr', 'es', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro', 'eu'],
+  'en': ['de', 'zh', 'fr', 'es', 'eu', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro'],
   'es': ['en', 'de', 'fr', 'eu'],
   'de': ['en', 'fr', 'es', 'eu'],
   'fr': ['en', 'de', 'es'],
@@ -14,14 +14,30 @@ const langs = {
   'jap': ['en']
 }
 
-//function App() {
+const lang_mapping = {
+  'en': 'English',
+  'es': 'Spanish',
+  'de': 'German',
+  'fr': 'French',
+  'it': 'Italian',
+  'eu': 'Basque',
+  'zh': 'Chinese',
+  'ru': 'Russian',
+  'jap': 'Japanese',
+  'el': 'Greek',
+  'ar': 'Arabic',
+  'nl': 'Dutch',
+  'ro': 'Romanian'
+}
+
 class App extends Component {
 
   state = {
-    // Initially, no file is selected
     selectedFile: null,
     fileUploadedSuccessfully: false,
-    APIResult: ""
+    APIResult: "",
+    origLang: "",
+    targetLang: ""
   };
 
   onFileChange = event => {
@@ -29,15 +45,16 @@ class App extends Component {
   }
 
   onFileUpload = () => {
-    const formData = new FormData();
-    formData.append(
-      "demo files",
-      this.state.selectedFile,
-      this.state.selectedFile.name
-    );
+
+    const formData = {
+      'fileName': this.state.selectedFile.name,
+      'fileContents': this.state.selectedFile,
+      'origLang': this.state.origLang,
+      'targetLang': this.state.targetLang
+    }
 
     // call api to upload file
-    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`,formData)
+    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, {params: formData})
     .then(response => {
       console.log(response.data.result);
       this.setState({ selectedFile: false })
@@ -46,6 +63,31 @@ class App extends Component {
     }).catch((error) => {
       console.log(error)
     })
+  }
+
+  onOriginLangChange = (event) => {
+    this.setState({ origLang: event.target.value });
+  }
+
+  showTargetLangs = () => {
+    if (this.state.origLang) {
+      return (
+        <select onChange={this.onTargetLangChange}>
+          <option value="What language do you want to translate your subtitles into?"> Select target language </option>
+          {langs[this.state.origLang].map((lang) => <option key={lang} value={lang}>{lang_mapping[lang]}</option>)}
+        </select>
+      )
+    } else {
+       return (
+        <div>
+          <br />
+        </div>
+      )
+    }
+  }
+
+  onTargetLangChange = (event) => {
+    this.setState({ targetLang: event.target.value });
   }
 
   fileData = () => {
@@ -86,6 +128,15 @@ class App extends Component {
             <h3>Upload your file here</h3>
             <div>
               <input type="file" onChange={this.onFileChange} />
+            </div>
+            <div>
+              <select onChange={this.onOriginLangChange}>
+                <option value="What language are your subtitles in?"> Select origin language </option>
+                {Object.keys(langs).map((lang) => <option key={lang} value={lang}>{lang_mapping[lang]}</option>)}
+              </select>
+              {this.showTargetLangs()}
+            </div>
+            <div>
               <button onClick={this.onFileUpload}>Upload</button>
             </div>
             {this.fileData()}

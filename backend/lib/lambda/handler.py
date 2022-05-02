@@ -63,7 +63,7 @@ def handler(event, context):
 
     if event["httpMethod"] == 'POST':
         req_body = event['body']
-        print(req_body)
+        print(event) #TODO checking in which format the languages are coming
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         file_contents = '\n'.join(req_body.split('\r\n')[4:-2])
         print('filename', file_name)
