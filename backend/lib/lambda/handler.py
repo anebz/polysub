@@ -63,19 +63,20 @@ def handler(event, context):
 
     if event["httpMethod"] == 'POST':
         req_body = event['body']
-        print(event) #TODO checking in which format the languages are coming
         file_name = re.search(r'filename="(.*)"', req_body)[1]
-        file_contents = '\n'.join(req_body.split('\r\n')[4:-2])
+        lang_origin, lang_target = re.findall(r'name="origin_lang".*XX_(\w*)_XX?.*name="target_lang".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
+        print('splitted_body')
+        print(req_body.split('\r\n')[:15])
+        file_contents = '\n'.join(req_body.split('\r\n')[12:-2])
         print('filename', file_name)
+        print('lang_origin', lang_origin, 'lang_target', lang_target)
+        print('file_contents', file_contents[:10])
 
         ## Parse input content into subtitles format ##
         subs = list(srt.parse(file_contents))
         joined_text = [sub.content for sub in subs]
 
         ## Translation step ##
-        # TODO get these infos from the event body
-        lang_origin = 'es'
-        lang_target = 'en'
         API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"        
         translated_text = []
         for i in range(0, len(joined_text), 100):
