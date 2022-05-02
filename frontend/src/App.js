@@ -46,13 +46,9 @@ class App extends Component {
 
   onFileUpload = () => {
     const formData = new FormData();
-    formData.append(
-      "demo files",
-      this.state.selectedFile,
-      this.state.selectedFile.name
-    );
-    formData.append("origin_lang", this.state.origLang);
-    formData.append("target_lang", this.state.targetLang);
+    formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
+    formData.append("target_lang", `XX_${this.state.targetLang}_XX`);
+    formData.append("User file", this.state.selectedFile, this.state.selectedFile.name);
 
     // call api to upload file
     axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, formData)
