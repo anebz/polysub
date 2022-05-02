@@ -47,6 +47,7 @@ class App extends Component {
   onFileUpload = () => {
     const formData = new FormData();
     formData.append(
+      "demo files",
       this.state.selectedFile,
       this.state.selectedFile.name,
       this.state.origLang,
