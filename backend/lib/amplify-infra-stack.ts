@@ -30,17 +30,6 @@ export class AmplifyInfraStack extends cdk.Stack {
       ]
     });
 
-    /*
-    const myLambda = new lambda.Function(this, 'PolySubLambda', {
-      runtime: lambda.Runtime.PYTHON_3_7,
-      handler: 'handler.lambda_handler',
-      code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
-      environment: {
-        "S3_BUCKET_NAME": myBucket.bucketName
-      }
-    });
-    */
-
     const myLambda = new PythonFunction(this, 'PolySubLambda', {
       entry: 'lib/lambda', // required
       index: 'handler.py', // optional, defaults to 'index.py'
@@ -48,7 +37,8 @@ export class AmplifyInfraStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(900), // default duration is 3s
       runtime: lambda.Runtime.PYTHON_3_8, // optional, defaults to lambda.Runtime.PYTHON_3_7
       environment: {
-        "S3_BUCKET_NAME": myBucket.bucketName
+        "S3_BUCKET_NAME": myBucket.bucketName,
+        "HG_API_KEY": cdk.SecretValue.secretsManager('hg-api-token').toString()
       }
     });
     myBucket.grantRead(myLambda);
@@ -63,20 +53,6 @@ export class AmplifyInfraStack extends cdk.Stack {
         statements: [SagemakerInvokeEndpointPolicy],
       }),
     );
-
-    /*
-    // TODO delete all dummy once it's implemented
-    const myLambdaDummy = new lambda.Function(this, 'DummyLambda', {
-      runtime: lambda.Runtime.PYTHON_3_7,
-      handler: 'handler_dummy.lambda_handler',
-      code: lambda.Code.fromAsset(path.resolve(__dirname, 'lambda')),
-      environment: {
-        "S3_BUCKET_NAME": myBucket.bucketName
-      }
-    });
-    myBucket.grantRead(myLambdaDummy);
-    myBucket.grantWrite(myLambdaDummy);
-    */
 
     // API Gateway
     const myApiGW = new apigw.RestApi(this, 'polysub-api', {

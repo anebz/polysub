@@ -3,9 +3,13 @@ import re
 import srt
 import json
 import boto3
-import requests
+from datetime import datetime
+import sagemaker
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
 
 s3 = boto3.client("s3")
+runtime = boto3.client('runtime.sagemaker', region_name='eu-central-1')
 
 # TODO improve sentence joining algorithm
 def join_all_text(parsed_data: list):
@@ -63,58 +67,41 @@ def handler(event, context):
 
     if event["httpMethod"] == 'POST':
         req_body = event['body']
-        print(req_body)
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         file_contents = '\n'.join(req_body.split('\r\n')[4:-2])
         print('filename', file_name)
+        print(file_contents.split('\n'))
 
+        ## Translation step ##
+        lang_origin = 'es'
+        lang_target = 'en'
+        endpoint_name = f'translation-{lang_origin}-{lang_target}'
+        predictor = Predictor(endpoint_name=endpoint_name, sagemaker_session=sagemaker.Session(), serializer=JSONSerializer())
+        
         ## Parse input content into subtitles format ##
         subs = list(srt.parse(file_contents))
         joined_text = [sub.content for sub in subs]
+        print('text to translate', joined_text)
 
-        ## Translation step ##
-        # TODO get these infos from the event body
-        lang_origin = 'es'
-        lang_target = 'en'
-        API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"        
-        translated_text = []
-        for i in range(0, len(joined_text), 100):
-            print(f"translating from {i} to {i+100}")
-            payload = {
-                "inputs": joined_text[i:min(i+100, len(joined_text)-1)],
-                "options": {"wait_for_model": True}
-            }
-            ## invoke 🤗 HuggingFace endpoint and obtain results ##
-            headers = {
-                "User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-                "Authorization": f"Bearer {os.environ['HG_API_KEY']}"
-            }
-            response = requests.post(API_URL, headers=headers, json=payload).json()
-            if len(response) == 0:
-                translated_text.append('')
-                continue
-            elif 'error' in response[-1] or 'translation_text' not in response[-1]:
-                return {
-                    "statusCode": statusCode,
-                    "headers": {
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                    "body": json.dumps({"result": response}),
-                }
-            translated_text.extend(res['translation_text'] for res in response)
+        ## invoke Sagemaker endpoint and obtain results ##
+        response = runtime.invoke_endpoint(EndpointName=endpoint_name, ContentType='application/json', Body=json.dumps({'inputs': joined_text}))
+        translated_text = [el['translation_text'] for el in json.loads(response['Body'].read().decode())]
         print('translated text', translated_text)
 
-        ## parse back to subtitle format ##
         for sub, translated in zip(subs, translated_text):
             sub.content = translated
         final_str = srt.compose(subs)
+        print('final_string', final_str)
 
-        ## upload to s3 and obtain presigned url
-        new_file_name = file_name.replace('.srt', f'-{lang_target}.srt')
-        with open(f"/tmp/{new_file_name}", 'w') as f:
+        # TODO maybe just upload info without saving and uploading file?
+        with open(f"/tmp/{file_name}", 'w') as f:
             f.write(final_str)
-        s3.upload_file(f"/tmp/{new_file_name}", os.environ['S3_BUCKET_NAME'], new_file_name)
-        presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': new_file_name}, ExpiresIn=300) # 5mins
+
+        # TODO give the new file a better name
+        s3.upload_file(f"/tmp/{file_name}", os.environ['S3_BUCKET_NAME'], file_name)
+
+        # obtain pre-signed url
+        presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': file_name}, ExpiresIn=300) # 5mins
 
         statusCode = 200
         result = presigned_url
@@ -125,9 +112,7 @@ def handler(event, context):
     return {
         "statusCode": statusCode,
         "headers": {
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+            "Access-Control-Allow-Origin": "*",
         },
         "body": json.dumps({"result": result}),
     }

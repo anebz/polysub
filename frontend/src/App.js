@@ -2,6 +2,18 @@ import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
 
+const langs = {
+  'en': ['de', 'zh', 'fr', 'es', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro', 'eu'],
+  'es': ['en', 'de', 'fr', 'eu'],
+  'de': ['en', 'fr', 'es', 'eu'],
+  'fr': ['en', 'de', 'es'],
+  'it': ['en', 'de', 'fr'],
+  'eu': ['es', 'en', 'de'],
+  'zh': ['en'],
+  'ru': ['en'],
+  'jap': ['en']
+}
+
 //function App() {
 class App extends Component {
 
@@ -22,13 +34,28 @@ class App extends Component {
       "demo files",
       this.state.selectedFile,
       this.state.selectedFile.name
-    )
+    );
+    const headers = {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+      "Access-Control-Allow-Methods": "OPTIONS,POST",
+      "Access-Control-Allow-Credentials": true,
+      "Access-Control-Allow-Origin": "*",
+      "X-Requested-With": "*"
+    };
+
     // call api to upload file
-    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, formData).then(response => {
+    axios.post(
+      `${process.env.REACT_APP_ENDPOINT}translate`,
+      { headers: headers },
+      formData)
+    .then(response => {
       console.log(response.data.result);
       this.setState({ selectedFile: false })
       this.setState({ fileUploadedSuccessfully: true });
       this.setState({ APIResult: response.data.result });
+    }).catch((error) => {
+      console.log(error)
     })
   }
 
