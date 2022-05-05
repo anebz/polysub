@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
+import Analytics from '@aws-amplify/analytics';
 
 const langs = {
   'en': ['de', 'zh', 'fr', 'es', 'eu', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro'],
@@ -29,6 +30,22 @@ const lang_mapping = {
   'nl': 'Dutch',
   'ro': 'Romanian'
 }
+
+// session tracking
+Analytics.autoTrack('session', {
+  enable: true
+});
+
+// page view tracking
+Analytics.autoTrack('pageView', {
+  enable: true,
+  type: 'SPA'
+});
+
+// page event tracking
+Analytics.autoTrack('event', {
+  enable: true
+});
 
 class App extends Component {
 
@@ -133,7 +150,11 @@ class App extends Component {
               {this.showTargetLangs()}
             </div>
             <div>
-              <button onClick={this.onFileUpload}>Upload</button>
+              <button onClick={this.onFileUpload} 
+                data-amplify-analytics-on='click'
+                data-amplify-analytics-name='click'
+                data-amplify-analytics-attrs={`orig_lang:${this.state.origLang}` `target_lang:${this.state.targetLang}`}>
+                Upload</button>
             </div>
             {this.fileData()}
           </div>
