@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
-import Amplify, { Analytics } from 'aws-amplify';
-import awsconfig from './aws-exports';
-
-Amplify.configure(awsconfig);
 
 const langs = {
   'en': ['de', 'zh', 'fr', 'es', 'eu', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro'],
@@ -34,23 +30,6 @@ const lang_mapping = {
   'ro': 'Romanian'
 }
 
-// session tracking
-// https://catalog.us-east-1.prod.workshops.aws/workshops/bb080ee8-4722-4290-ac6e-d4cde0a65142/en-US/03-adding-analytics/01-collect-analytics#session-tracking
-Analytics.autoTrack('session', {
-  enable: true
-});
-
-// page view tracking
-Analytics.autoTrack('pageView', {
-  enable: true,
-  type: 'SPA'
-});
-
-// page event tracking
-Analytics.autoTrack('event', {
-  enable: true
-});
-
 class App extends Component {
 
   state = {
@@ -66,16 +45,6 @@ class App extends Component {
   }
 
   onFileUpload = () => {
-
-    // create Analytics record: https://docs.amplify.aws/lib/analytics/autotrack/q/platform/js/#page-event-tracking
-    Analytics.record({
-      name: 'click',
-      attributes: {
-        attr: 'attr', // the default ones
-        orig_lang: this.state.origLang, // defined in the button component
-        target_lant: this.state.targetLang, // defined in the button component
-      }
-    });
 
     const formData = new FormData();
     formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
