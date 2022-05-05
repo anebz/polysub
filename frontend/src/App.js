@@ -32,6 +32,7 @@ const lang_mapping = {
 }
 
 // session tracking
+// https://catalog.us-east-1.prod.workshops.aws/workshops/bb080ee8-4722-4290-ac6e-d4cde0a65142/en-US/03-adding-analytics/01-collect-analytics#session-tracking
 Analytics.autoTrack('session', {
   enable: true
 });
@@ -62,6 +63,17 @@ class App extends Component {
   }
 
   onFileUpload = () => {
+
+    // create Analytics record: https://docs.amplify.aws/lib/analytics/autotrack/q/platform/js/#page-event-tracking
+    Analytics.record({
+      name: 'click',
+      attributes: {
+        attr: 'attr', // the default ones
+        orig_lang: this.state.origLang, // defined in the button component
+        target_lant: this.state.targetLang, // defined in the button component
+      }
+    });
+
     const formData = new FormData();
     formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
     formData.append("target_lang", `XX_${this.state.targetLang}_XX`);
@@ -150,11 +162,7 @@ class App extends Component {
               {this.showTargetLangs()}
             </div>
             <div>
-              <button onClick={this.onFileUpload} 
-                data-amplify-analytics-on='click'
-                data-amplify-analytics-name='click'
-                data-amplify-analytics-attrs={`orig_lang:${this.state.origLang}` `target_lang:${this.state.targetLang}`}>
-                Upload</button>
+              <button onClick={this.onFileUpload}>Upload</button>
             </div>
             {this.fileData()}
           </div>
