@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@aws-amplify/analytics": "^5.2.6",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.0.1",
     "@testing-library/user-event": "^13.5.0",
+    "aws-amplify": "^4.3.21",
     "aws-cdk-lib": "^2.21.1",
     "axios": "^0.27.1",
     "node-gyp": "^9.0.0",

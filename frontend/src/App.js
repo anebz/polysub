@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
-import Analytics from '@aws-amplify/analytics';
+import Amplify, { Analytics } from 'aws-amplify';
+import awsconfig from './aws-exports';
+
+Amplify.configure(awsconfig);
 
 const langs = {
   'en': ['de', 'zh', 'fr', 'es', 'eu', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro'],
