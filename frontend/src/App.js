@@ -34,6 +34,7 @@ class App extends Component {
 
   state = {
     selectedFile: null,
+    buttonClicked: false,
     fileUploadedSuccessfully: false,
     APIResult: "",
     origLang: "",
@@ -46,17 +47,19 @@ class App extends Component {
 
   onFileUpload = () => {
 
+    this.setState({ buttonClicked: true });
+
     const formData = new FormData();
     formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
     formData.append("target_lang", `XX_${this.state.targetLang}_XX`);
     formData.append("User file", this.state.selectedFile, this.state.selectedFile.name);
 
     // call api to upload file
-    // for API Gateway, add translate to the endpoint
     axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
     .then(response => {
       console.log(response.data)
-      this.setState({ selectedFile: false })
+      this.setState({ selectedFile: false });
+      this.setState({ buttonClicked: false });
       this.setState({ fileUploadedSuccessfully: true });
       this.setState({ APIResult: response.data.result });
     }).catch((error) => {
@@ -90,12 +93,11 @@ class App extends Component {
   }
 
   fileData = () => {
-    if (this.state.selectedFile) {
+    if (this.state.buttonClicked) {
       return (
         <div>
-          <h2>File Details:</h2>
-          <p>File Name: {this.state.selectedFile.name}</p>
-          <p> File Type: {this.state.selectedFile.type}</p>
+          <h3>Translating... Please wait</h3>
+          <h4>This might take a few minutes to run. Don't refresh the webpage</h4>
         </div>
       )
     } else if (this.state.fileUploadedSuccessfully) {

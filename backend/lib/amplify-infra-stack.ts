@@ -55,6 +55,7 @@ export class AmplifyInfraStack extends cdk.Stack {
     dDBTable.grantWriteData(myLambda);
     
     // API Gateway
+    /*
     const myApiGW = new apigw.RestApi(this, 'polysub-api', {
       defaultCorsPreflightOptions: {
         allowOrigins: apigw.Cors.ALL_ORIGINS,
@@ -67,6 +68,7 @@ export class AmplifyInfraStack extends cdk.Stack {
       .resourceForPath("translate")
       .addMethod("POST", 
         new apigw.LambdaIntegration(myLambda));
+    */
 
     // Amplify app
     const amplifyApp = new amplify.App(this, "polysub-app", {
@@ -77,7 +79,7 @@ export class AmplifyInfraStack extends cdk.Stack {
       }),
       environmentVariables: {
         'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
-        'ENDPOINT': myApiGW.url,
+        'ENDPOINT': `CHANGE_WITH_LAMBDA_FUNCTION_URL`, // ${myApiGW.url}translate
         'REGION': this.region
       }
     });

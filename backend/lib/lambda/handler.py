@@ -3,6 +3,7 @@ import re
 import srt
 import json
 import boto3
+import base64
 import datetime
 import requests
 
@@ -63,31 +64,18 @@ def join_all_text(parsed_data: list):
 
 def handler(event, context):
 
-    if event["httpMethod"] == 'POST':
-        req_body = event['body']
+    if event['requestContext']['http']['method'] == 'POST':
+        req_body = base64.b64decode(event['body']).decode('latin-1')
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         lang_origin, lang_target = re.findall(r'name="origin_lang".*XX_(\w*)_XX?.*name="target_lang".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
-        print('splitted_body')
-        print(req_body.split('\r\n')[:15])
         file_contents = '\n'.join(req_body.split('\r\n')[12:-2])
         print('filename', file_name)
         print('lang_origin', lang_origin, 'lang_target', lang_target)
-        print('file_contents', file_contents[:10])
-
-        ## Add analytics data to DynamoDB table ##
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        dbResponse = ddb.update_item(
-            TableName=os.environ['DDB_TABLE_NAME'],
-            Key={'date': {'S': today}},
-            UpdateExpression="ADD #orig_lang :increment, #target_lang :increment, #num_subs :add",
-            ExpressionAttributeNames={'#orig_lang': f'orig_lang_{lang_origin}', '#target_lang': f'target_lang_{lang_target}', '#num_subs': 'num_subs'},
-            ExpressionAttributeValues={':increment': {'N': '1'}, ':add': {'N': str(len(file_contents))}}
-        )
-        dbStatus = dbResponse['ResponseMetadata']['HTTPStatusCode']
 
         ## Parse input content into subtitles format ##
         subs = list(srt.parse(file_contents))
         joined_text = [sub.content for sub in subs]
+        print('num_subtitles', len(file_contents))
 
         ## Translation step ##
         API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"        
@@ -129,6 +117,17 @@ def handler(event, context):
             f.write(final_str)
         s3.upload_file(f"/tmp/{new_file_name}", os.environ['S3_BUCKET_NAME'], new_file_name)
         presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': new_file_name}, ExpiresIn=300) # 5mins
+
+        ## Add analytics data to DynamoDB table ##
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        dbResponse = ddb.update_item(
+            TableName=os.environ['DDB_TABLE_NAME'],
+            Key={'date': {'S': today}},
+            UpdateExpression="ADD #orig_lang :increment, #target_lang :increment, #num_subs :add",
+            ExpressionAttributeNames={'#orig_lang': f'orig_lang_{lang_origin}', '#target_lang': f'target_lang_{lang_target}', '#num_subs': 'num_subs'},
+            ExpressionAttributeValues={':increment': {'N': '1'}, ':add': {'N': str(len(joined_text))}}
+        )
+        dbStatus = dbResponse['ResponseMetadata']['HTTPStatusCode']
 
         statusCode = 200
         result = presigned_url
