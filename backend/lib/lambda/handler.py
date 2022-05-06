@@ -65,6 +65,7 @@ def join_all_text(parsed_data: list):
 def handler(event, context):
 
     if event['requestContext']['http']['method'] == 'POST':
+        #TODO handle different encodings
         req_body = base64.b64decode(event['body']).decode('latin-1')
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         lang_origin, lang_target = re.findall(r'name="origin_lang".*XX_(\w*)_XX?.*name="target_lang".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
@@ -138,10 +139,5 @@ def handler(event, context):
 
     return {
         "statusCode": statusCode,
-        "headers": {
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-        },
         "body": json.dumps({"result": result, "dbStatus": dbStatus}),
     }
