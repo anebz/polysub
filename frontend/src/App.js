@@ -54,6 +54,7 @@ class App extends Component {
     // call api to upload file
     axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, formData)
     .then(response => {
+      console.log(response.data)
       this.setState({ selectedFile: false })
       this.setState({ fileUploadedSuccessfully: true });
       this.setState({ APIResult: response.data.result });

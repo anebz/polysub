@@ -3,9 +3,11 @@ import re
 import srt
 import json
 import boto3
+import datetime
 import requests
 
 s3 = boto3.client("s3")
+ddb = boto3.client('dynamodb', region_name='eu-central-1')
 
 # TODO improve sentence joining algorithm
 def join_all_text(parsed_data: list):
@@ -72,6 +74,17 @@ def handler(event, context):
         print('lang_origin', lang_origin, 'lang_target', lang_target)
         print('file_contents', file_contents[:10])
 
+        ## Add analytics data to DynamoDB table ##
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        dbResponse = ddb.update_item(
+            TableName=os.environ['DDB_TABLE_NAME'],
+            Key={'date': {'S': today}},
+            UpdateExpression="ADD #orig_lang :increment, #target_lang :increment, #num_subs :add",
+            ExpressionAttributeNames={'#orig_lang': f'orig_lang_{lang_origin}', '#target_lang': f'target_lang_{lang_target}', '#num_subs': 'num_subs'},
+            ExpressionAttributeValues={':increment': {'N': '1'}, ':add': {'N': str(len(file_contents))}}
+        )
+        dbStatus = dbResponse['ResponseMetadata']['HTTPStatusCode']
+
         ## Parse input content into subtitles format ##
         subs = list(srt.parse(file_contents))
         joined_text = [sub.content for sub in subs]
@@ -122,6 +135,7 @@ def handler(event, context):
     else:
         statusCode = 500
         result = "error"
+        dbStatus = 0
 
     return {
         "statusCode": statusCode,
@@ -130,5 +144,5 @@ def handler(event, context):
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
         },
-        "body": json.dumps({"result": result}),
+        "body": json.dumps({"result": result, "dbStatus": dbStatus}),
     }

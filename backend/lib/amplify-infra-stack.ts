@@ -3,6 +3,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as amplify from '@aws-cdk/aws-amplify';
 import * as apigw from "@aws-cdk/aws-apigateway";
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { PythonFunction } from "@aws-cdk/aws-lambda-python";
 
 const GITHUB_REPO = 'polysub'
@@ -26,6 +27,16 @@ export class AmplifyInfraStack extends cdk.Stack {
       ]
     });
 
+    // DynamoDB table
+    const dDBTable = new dynamodb.Table(this, 'PolySubDDB', {
+      billingMode: dynamodb.BillingMode.PROVISIONED,
+      readCapacity: 1,
+      writeCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      partitionKey: { name: 'date', type: dynamodb.AttributeType.STRING },
+      pointInTimeRecovery: true,
+    });
+
     // Lambda Function
     const myLambda = new PythonFunction(this, 'PolySubLambda', {
       entry: 'lib/lambda',
@@ -35,11 +46,13 @@ export class AmplifyInfraStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_8,
       environment: {
         "S3_BUCKET_NAME": myBucket.bucketName,
-        "HG_API_KEY": cdk.SecretValue.secretsManager('hg-api-token').toString()
+        "HG_API_KEY": cdk.SecretValue.secretsManager('hg-api-token').toString(),
+        'DDB_TABLE_NAME': dDBTable.tableName
       },
     });
     myBucket.grantRead(myLambda);
     myBucket.grantWrite(myLambda);
+    dDBTable.grantWriteData(myLambda);
     
     // API Gateway
     const myApiGW = new apigw.RestApi(this, 'polysub-api', {
