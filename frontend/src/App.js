@@ -52,7 +52,8 @@ class App extends Component {
     formData.append("User file", this.state.selectedFile, this.state.selectedFile.name);
 
     // call api to upload file
-    axios.post(`${process.env.REACT_APP_ENDPOINT}translate`, formData)
+    // for API Gateway, add translate to the endpoint
+    axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
     .then(response => {
       console.log(response.data)
       this.setState({ selectedFile: false })
