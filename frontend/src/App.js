@@ -1,6 +1,48 @@
-import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
+import React, { Component } from 'react';
+import Analytics from '@aws-amplify/analytics';
+import Auth from '@aws-amplify/auth';
+
+const amplifyConfig = {
+  Auth: {
+    identityPoolId: 'us-east-1:fcd726d1-8fe0-4cf0-bd81-8ffddd5bf0c0',
+    region: 'eu-central-1'
+  }
+}
+
+//Initialize Amplify
+Auth.configure(amplifyConfig);
+
+const analyticsConfig = {
+  AWSPinpoint: {
+    // Amazon Pinpoint App Client ID
+    appId: 'f86e1c35ee144fb8a9c6a932bf3a2038',
+    // Amazon service region
+    region: 'eu-central-1',
+    mandatorySignIn: false,
+  }
+}
+
+Analytics.configure(analyticsConfig)
+
+// session tracking
+// https://catalog.us-east-1.prod.workshops.aws/workshops/bb080ee8-4722-4290-ac6e-d4cde0a65142/en-US/03-adding-analytics/01-collect-analytics#session-tracking
+Analytics.autoTrack('session', {
+  enable: true
+});
+
+// page view tracking
+Analytics.autoTrack('pageView', {
+  enable: true,
+  type: 'SPA'
+});
+
+// page event tracking
+Analytics.autoTrack('event', {
+  enable: true
+});
+
 
 const langs = {
   'en': ['de', 'zh', 'fr', 'es', 'eu', 'el', 'ru', 'ar', 'jap', 'it', 'nl', 'ro'],
@@ -45,6 +87,16 @@ class App extends Component {
   }
 
   onFileUpload = () => {
+
+    // create Analytics record: https://docs.amplify.aws/lib/analytics/autotrack/q/platform/js/#page-event-tracking
+    Analytics.record({
+      name: 'click',
+      attributes: {
+        attr: 'attr', // the default ones
+        orig_lang: this.state.origLang, // defined in the button component
+        target_lant: this.state.targetLang, // defined in the button component
+      }
+    });
 
     const formData = new FormData();
     formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
