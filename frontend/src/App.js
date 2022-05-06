@@ -1,8 +1,8 @@
 import './App.css';
 import axios from 'axios'
 import React, { Component } from 'react';
-import Analytics from '@aws-amplify/analytics';
 import Auth from '@aws-amplify/auth';
+import Analytics from '@aws-amplify/analytics';
 
 const amplifyConfig = {
   Auth: {
