@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as amplify from '@aws-cdk/aws-amplify';
-import * as apigw from "@aws-cdk/aws-apigateway";
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { PythonFunction } from "@aws-cdk/aws-lambda-python";
 
@@ -53,22 +52,6 @@ export class AmplifyInfraStack extends cdk.Stack {
     myBucket.grantRead(myLambda);
     myBucket.grantWrite(myLambda);
     dDBTable.grantWriteData(myLambda);
-    
-    // API Gateway
-    /*
-    const myApiGW = new apigw.RestApi(this, 'polysub-api', {
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigw.Cors.ALL_ORIGINS,
-        allowMethods: apigw.Cors.ALL_METHODS,
-        allowHeaders: ['*']
-      }
-    });
-
-    myApiGW.root
-      .resourceForPath("translate")
-      .addMethod("POST", 
-        new apigw.LambdaIntegration(myLambda));
-    */
 
     // Amplify app
     const amplifyApp = new amplify.App(this, "polysub-app", {

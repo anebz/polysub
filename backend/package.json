@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@aws-cdk/aws-amplify": "1.139.0",
-    "@aws-cdk/aws-apigateway": "1.139.0",
     "@aws-cdk/aws-dynamodb": "1.139.0",
     "@aws-cdk/aws-lambda": "1.139.0",
     "@aws-cdk/aws-lambda-event-sources": "1.139.0",
