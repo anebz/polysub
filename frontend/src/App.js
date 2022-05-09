@@ -33,15 +33,16 @@ const lang_mapping = {
 class App extends Component {
 
   state = {
-    incorrectExtension: false,
     selectedFile: null,
-    buttonClicked: false,
-    APIResult: "",
+    incorrectExtension: false,
     langSource: "",
-    langTarget: ""
+    langTarget: "",
+    buttonClicked: false,
+    APIResult: ""
   };
 
   onFileChange = event => {
+    this.setState({ APIResult: "" });
     if (event.target.files[0] !== undefined) {
       const extension = event.target.files[0].name.split('.').pop();
       this.setState({ incorrectExtension: extension !== 'srt' });
@@ -52,18 +53,10 @@ class App extends Component {
     }
   }
 
-  showFileWarning = () => {
-    if (!this.state.buttonClicked && this.state.incorrectExtension) {
-      return (
-        <div>
-          <p>WARNING. Your file extension is not .srt. Please upload a valid file!</p>
-        </div>
-      )
-    }
-  }
-
   onLangSourceChange = (event) => {
     this.setState({ buttonClicked: false });
+
+    this.setState({ APIResult: "" });
     if (event.target.value === "What language are your subtitles in?") {
       this.setState({ langSource: "" });
     } else {
@@ -105,7 +98,6 @@ class App extends Component {
     axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
       .then(response => {
         console.log(response.data)
-        this.setState({ selectedFile: false });
         this.setState({ buttonClicked: false });
         this.setState({ APIResult: response.data.result });
       }).catch((error) => {
@@ -164,7 +156,6 @@ class App extends Component {
             <div>
               <input type="file" onChange={this.onFileChange} />
             </div>
-            {this.showFileWarning()}
             <div>
               <select onChange={this.onLangSourceChange}>
                 <option value="What language are your subtitles in?"> Select origin language </option>
