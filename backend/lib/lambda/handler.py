@@ -68,10 +68,10 @@ def handler(event, context):
         #TODO handle different encodings
         req_body = base64.b64decode(event['body']).decode('latin-1')
         file_name = re.search(r'filename="(.*)"', req_body)[1]
-        lang_origin, lang_target = re.findall(r'name="origin_lang".*XX_(\w*)_XX?.*name="target_lang".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
+        lang_source, lang_target = re.findall(r'name="lang_source".*XX_(\w*)_XX?.*name="lang_target".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
         file_contents = '\n'.join(req_body.split('\r\n')[12:-2])
         print('filename', file_name)
-        print('lang_origin', lang_origin, 'lang_target', lang_target)
+        print('lang_source', lang_source, 'lang_target', lang_target)
 
         ## Parse input content into subtitles format ##
         subs = list(srt.parse(file_contents))
@@ -79,7 +79,7 @@ def handler(event, context):
         print('num_subtitles', len(file_contents))
 
         ## Translation step ##
-        API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_origin}-{lang_target}"        
+        API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_source}-{lang_target}"        
         translated_text = []
         for i in range(0, len(joined_text), 100):
             print(f"translating from {i} to {i+100}")
@@ -124,8 +124,8 @@ def handler(event, context):
         dbResponse = ddb.update_item(
             TableName=os.environ['DDB_TABLE_NAME'],
             Key={'date': {'S': today}},
-            UpdateExpression="ADD #orig_lang :increment, #target_lang :increment, #num_subs :add",
-            ExpressionAttributeNames={'#orig_lang': f'orig_lang_{lang_origin}', '#target_lang': f'target_lang_{lang_target}', '#num_subs': 'num_subs'},
+            UpdateExpression="ADD #lang_source :increment, #lang_target :increment, #num_subs :add",
+            ExpressionAttributeNames={'#lang_source': f'lang_source_{lang_source}', '#lang_target': f'lang_target_{lang_target}', '#num_subs': 'num_subs'},
             ExpressionAttributeValues={':increment': {'N': '1'}, ':add': {'N': str(len(joined_text))}}
         )
         dbStatus = dbResponse['ResponseMetadata']['HTTPStatusCode']

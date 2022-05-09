@@ -38,8 +38,8 @@ class App extends Component {
     buttonClicked: false,
     fileUploadedSuccessfully: false,
     APIResult: "",
-    origLang: "",
-    targetLang: ""
+    langSource: "",
+    langTarget: ""
   };
 
   onFileChange = event => {
@@ -63,42 +63,42 @@ class App extends Component {
     }
   }
 
-  onOriginLangChange = (event) => {
+  onLangSourceChange = (event) => {
     this.setState({ buttonClicked: false });
     if (event.target.value === "What language are your subtitles in?") {
-      this.setState({ origLang: "" });
+      this.setState({ langSource: "" });
     } else {
-      this.setState({ origLang: event.target.value });
+      this.setState({ langSource: event.target.value });
     }
   }
 
-  showTargetLangs = () => {
-    if (this.state.origLang) {
+  showlangTargets = () => {
+    if (this.state.langSource) {
       return (
-        <select onChange={this.onTargetLangChange}>
+        <select onChange={this.onlangTargetChange}>
           <option value="What language do you want to translate your subtitles into?"> Select target language </option>
-          {langs[this.state.origLang].map((lang) => <option key={lang} value={lang}>{lang_mapping[lang]}</option>)}
+          {langs[this.state.langSource].map((lang) => <option key={lang} value={lang}>{lang_mapping[lang]}</option>)}
         </select>
       )
     }
   }
 
-  onTargetLangChange = (event) => {
+  onlangTargetChange = (event) => {
     this.setState({ buttonClicked: false });
-    this.setState({ targetLang: event.target.value });
+    this.setState({ langTarget: event.target.value });
   }
 
   onFileUpload = () => {
 
-    if (!this.state.selectedFile || this.state.incorrectExtension || !this.state.origLang || !this.state.targetLang) {
+    if (!this.state.selectedFile || this.state.incorrectExtension || !this.state.langSource || !this.state.langTarget) {
       return
     }
 
     this.setState({ buttonClicked: true });
 
     const formData = new FormData();
-    formData.append("origin_lang", `XX_${this.state.origLang}_XX`);
-    formData.append("target_lang", `XX_${this.state.targetLang}_XX`);
+    formData.append("lang_source", `XX_${this.state.langSource}_XX`);
+    formData.append("lang_target", `XX_${this.state.langTarget}_XX`);
     formData.append("User file", this.state.selectedFile, this.state.selectedFile.name);
 
     // call api to upload file
@@ -122,7 +122,7 @@ class App extends Component {
           <h4> Choose a file and press the Translate button</h4>
         </div>
       )
-    } else if (!this.state.origLang || !this.state.targetLang) {
+    } else if (!this.state.langSource || !this.state.langTarget) {
       return (
         <div>
           <p>Please select a source language and target language</p>
@@ -167,11 +167,11 @@ class App extends Component {
             </div>
             {this.showFileWarning()}
             <div>
-              <select onChange={this.onOriginLangChange}>
+              <select onChange={this.onLangSourceChange}>
                 <option value="What language are your subtitles in?"> Select origin language </option>
                 {Object.keys(langs).map((lang) => <option key={lang} value={lang}>{lang_mapping[lang]}</option>)}
               </select>
-              {this.showTargetLangs()}
+              {this.showlangTargets()}
             </div>
             <div>
               <button onClick={this.onFileUpload}>Translate subtitles</button>
