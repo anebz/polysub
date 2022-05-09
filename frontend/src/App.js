@@ -36,7 +36,6 @@ class App extends Component {
     incorrectExtension: false,
     selectedFile: null,
     buttonClicked: false,
-    fileUploadedSuccessfully: false,
     APIResult: "",
     langSource: "",
     langTarget: ""
@@ -95,6 +94,7 @@ class App extends Component {
     }
 
     this.setState({ buttonClicked: true });
+    this.setState({ APIResult: null });
 
     const formData = new FormData();
     formData.append("lang_source", `XX_${this.state.langSource}_XX`);
@@ -107,7 +107,6 @@ class App extends Component {
         console.log(response.data)
         this.setState({ selectedFile: false });
         this.setState({ buttonClicked: false });
-        this.setState({ fileUploadedSuccessfully: true });
         this.setState({ APIResult: response.data.result });
       }).catch((error) => {
         console.log(error)
@@ -115,7 +114,7 @@ class App extends Component {
   }
 
   fileData = () => {
-    if (this.state.fileUploadedSuccessfully) {
+    if (this.state.APIResult) {
       return (
         <div>
           <br />
@@ -142,14 +141,14 @@ class App extends Component {
       if (this.state.incorrectExtension) {
         return (
           <div>
-            <p>ERROR: Your file extension is not .srt. Please upload a valid file!</p>
+            <p>❌ ERROR: Your file extension is not .srt --{'>'} Please upload a valid file!</p>
           </div>
         )
       }
       return (
         <div>
-          <h4>Translating... Please wait</h4>
-          <p>This might take a few minutes to run. Don't refresh the webpage</p>
+          <h4>🚛 Translating...</h4>
+          <p>🕰 This might take a few minutes to run. Please don't exit or refresh the webpage</p>
         </div>
       )
     }
