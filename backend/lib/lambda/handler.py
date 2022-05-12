@@ -96,7 +96,7 @@ def handler(event, context):
             if len(response) == 0:
                 translated_text.append('')
                 continue
-            elif 'error' in response or 'translation_text' not in response:
+            elif 'error' in response or 'translation_text' not in response[0]:
                 print("ERROR", response)
                 return {
                     "statusCode": "500",

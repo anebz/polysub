@@ -109,11 +109,11 @@ class App extends Component {
 
   fileData = () => {
     if (this.state.APIResult) {
-      if (this.state.APIResult == 'ERROR') {
+      if (this.state.APIResult === 'ERROR') {
         return (
           <div>
             <br />
-            <h4>😔 There has been an error when translating your file</h4>
+            <h4>😔 There has been an error translating your file</h4>
           </div>
         )
       } else {
