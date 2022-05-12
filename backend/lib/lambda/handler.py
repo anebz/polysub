@@ -97,7 +97,7 @@ def handler(event, context):
                 translated_text.append('')
                 continue
             elif 'error' in response or 'translation_text' not in response:
-                print(response)
+                print("ERROR", response)
                 return {
                     "statusCode": "500",
                     "body": json.dumps({"result": response}),
@@ -111,13 +111,16 @@ def handler(event, context):
         final_str = srt.compose(subs)
 
         ## upload to s3 and obtain presigned url
+        print("Uploading to S3")
         new_file_name = file_name.replace('.srt', f'-{lang_target}.srt')
         with open(f"/tmp/{new_file_name}", 'w') as f:
             f.write(final_str)
         s3.upload_file(f"/tmp/{new_file_name}", os.environ['S3_BUCKET_NAME'], new_file_name)
         presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': new_file_name}, ExpiresIn=300) # 5mins
+        print("presigned URL:", presigned_url)
 
         ## Add analytics data to DynamoDB table ##
+        print("Adding analytics to DynamoDB")
         today = datetime.datetime.now().strftime('%Y-%m-%d')
         dbResponse = ddb.update_item(
             TableName=os.environ['DDB_TABLE_NAME'],
@@ -127,6 +130,7 @@ def handler(event, context):
             ExpressionAttributeValues={':increment': {'N': '1'}, ':add': {'N': str(len(joined_text))}}
         )
         dbStatus = dbResponse['ResponseMetadata']['HTTPStatusCode']
+        print("Finished translating")
 
         statusCode = 200
         result = presigned_url

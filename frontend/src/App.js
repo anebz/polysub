@@ -109,15 +109,24 @@ class App extends Component {
 
   fileData = () => {
     if (this.state.APIResult) {
-      return (
-        <div>
-          <br />
-          <h4>File translated successfully! 🥳</h4>
-          <button onClick={() => { window.open(this.state.APIResult, "_blank"); }}>
-            Download your translated file
-          </button>
-        </div>
-      )
+      if (this.state.APIResult == 'ERROR') {
+        return (
+          <div>
+            <br />
+            <h4>😔 There has been an error when translating your file</h4>
+          </div>
+        )
+      } else {
+        return (
+          <div>
+            <br />
+            <h4>File translated successfully! 🥳</h4>
+            <button onClick={() => { window.open(this.state.APIResult, "_blank"); }}>
+              Download your translated file
+            </button>
+          </div>
+        )
+      }
     } else if (!this.state.selectedFile) {
       return (
         <div>
