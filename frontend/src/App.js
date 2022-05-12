@@ -95,21 +95,44 @@ class App extends Component {
     formData.append("User file", this.state.selectedFile, this.state.selectedFile.name);
 
     // call api to upload file
+    const config = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: formData
+    };
+    try {
+      const fetchResponse = await fetch(`${process.env.REACT_APP_ENDPOINT}`, config);
+      const data = await fetchResponse.json();
+      if (fetchResponse.ok) {
+        console.log(fetchResponse);
+        console.log(data);
+        this.setState({ buttonClicked: false });
+        this.setState({ APIResult: data.result });
+      } else {
+        this.setState({ buttonClicked: false });
+        this.setState({ APIResult: 'ERROR in response' });
+      }
+    } catch (error) {
+      console.log(error);
+      this.setState({ buttonClicked: false });
+      this.setState({ APIResult: 'ERROR in request' });
+    }
+    /*
     axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
       .then(response => {
         console.log(response.data);
         this.setState({ buttonClicked: false });
         this.setState({ APIResult: response.data.result });
-      }).catch((error) => {
-        console.log(error);
-        this.setState({ buttonClicked: false });
-        this.setState({ APIResult: 'ERROR' });
       })
+    */
   }
 
   fileData = () => {
     if (this.state.APIResult) {
-      if (this.state.APIResult === 'ERROR') {
+      if (this.state.APIResult.includes('ERROR')) {
         return (
           <div>
             <br />
