@@ -97,7 +97,12 @@ def handler(event, context):
             }
             i = 0
             while i < 5:
-                response = requests.post(API_URL, headers=headers, json=payload).json()
+                try:
+                    response = requests.post(API_URL, headers=headers, json=payload).json()
+                except Exception:
+                    print("error with response", Exception)
+                    i += 1
+                    continue
                 if len(response) == 0:
                     translated_text.append('')
                     break
