@@ -97,11 +97,13 @@ class App extends Component {
     // call api to upload file
     axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
       .then(response => {
-        console.log(response.data)
+        console.log(response.data);
         this.setState({ buttonClicked: false });
         this.setState({ APIResult: response.data.result });
       }).catch((error) => {
-        console.log(error)
+        console.log(error);
+        this.setState({ buttonClicked: false });
+        this.setState({ APIResult: 'ERROR' });
       })
   }
 

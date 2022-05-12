@@ -96,12 +96,10 @@ def handler(event, context):
             if len(response) == 0:
                 translated_text.append('')
                 continue
-            elif 'error' in response[-1] or 'translation_text' not in response[-1]:
+            elif 'error' in response or 'translation_text' not in response:
+                print(response)
                 return {
-                    "statusCode": statusCode,
-                    "headers": {
-                        "Access-Control-Allow-Origin": "*",
-                    },
+                    "statusCode": "500",
                     "body": json.dumps({"result": response}),
                 }
             translated_text.extend(res['translation_text'] for res in response)
