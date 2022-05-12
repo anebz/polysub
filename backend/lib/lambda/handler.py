@@ -2,6 +2,7 @@ import os
 import re
 import srt
 import json
+import time
 import boto3
 import base64
 import datetime
@@ -70,6 +71,8 @@ def handler(event, context):
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         lang_source, lang_target = re.findall(r'name="lang_source".*XX_(\w*)_XX?.*name="lang_target".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
         file_contents = '\n'.join(req_body.split('\r\n')[12:-2])
+        # remove weird character
+        file_contents = file_contents.replace('ï»¿', '')
         print('filename', file_name)
         print('lang_source', lang_source, 'lang_target', lang_target)
 
@@ -92,17 +95,22 @@ def handler(event, context):
                 "User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
                 "Authorization": f"Bearer {os.environ['HG_API_KEY']}"
             }
-            response = requests.post(API_URL, headers=headers, json=payload).json()
-            if len(response) == 0:
-                translated_text.append('')
-                continue
-            elif 'error' in response or 'translation_text' not in response[0]:
-                print("ERROR", response)
-                return {
-                    "statusCode": "500",
-                    "body": json.dumps({"result": response}),
-                }
-            translated_text.extend(res['translation_text'] for res in response)
+            i = 0
+            while i < 5:
+                response = requests.post(API_URL, headers=headers, json=payload).json()
+                if len(response) == 0:
+                    translated_text.append('')
+                    break
+                elif 'error' in response or 'translation_text' not in response[0]:
+                    print("ERROR", response)
+                    print(f"Retrying, {i+1}/5")
+                    i += 1
+                    time.sleep(10)
+                else:
+                    translated_text.extend(res['translation_text'] for res in response)
+                    break
+            if i == 5:
+                return { "statusCode": "500", "body": json.dumps({"result": response}) }
         print('translated text', translated_text)
 
         ## parse back to subtitle format ##
@@ -139,7 +147,4 @@ def handler(event, context):
         result = "error"
         dbStatus = 0
 
-    return {
-        "statusCode": statusCode,
-        "body": json.dumps({"result": result, "dbStatus": dbStatus}),
-    }
+    return { "statusCode": statusCode, "body": json.dumps({"result": result, "dbStatus": dbStatus}) }
