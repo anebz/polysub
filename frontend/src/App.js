@@ -80,7 +80,7 @@ class App extends Component {
     this.setState({ langTarget: event.target.value });
   }
 
-  onFileUpload = () => {
+  onFileUpload = async () => {
 
     if (!this.state.selectedFile || this.state.incorrectExtension || !this.state.langSource || !this.state.langTarget) {
       return
@@ -104,7 +104,6 @@ class App extends Component {
       body: formData
     };
     try {
-      /*
       const fetchResponse = await fetch(`${process.env.REACT_APP_ENDPOINT}`, config);
       const data = await fetchResponse.json();
       if (fetchResponse.ok) {
@@ -116,18 +115,19 @@ class App extends Component {
         this.setState({ buttonClicked: false });
         this.setState({ APIResult: 'ERROR in response' });
       }
-      */
-      axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
-        .then(response => {
-          console.log(response.data);
-          this.setState({ buttonClicked: false });
-          this.setState({ APIResult: response.data.result });
-        })
     } catch (error) {
       console.log(error);
       this.setState({ buttonClicked: false });
       this.setState({ APIResult: 'ERROR in request' });
     }
+    /*
+    axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
+      .then(response => {
+        console.log(response.data);
+        this.setState({ buttonClicked: false });
+        this.setState({ APIResult: response.data.result });
+      })
+    */
   }
 
   fileData = () => {
