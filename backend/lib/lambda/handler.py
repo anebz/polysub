@@ -95,26 +95,31 @@ def handler(event, context):
                 "User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
                 "Authorization": f"Bearer {os.environ['HG_API_KEY']}"
             }
-            i = 0
-            while i < 5:
+
+            # get response and retry if error
+            j = 0
+            while j < 5:
                 try:
                     response = requests.post(API_URL, headers=headers, json=payload).json()
                 except Exception:
                     print("error with response", Exception)
-                    i += 1
+                    j += 1
                     continue
+                
                 if len(response) == 0:
+                    print("Response is empty")
                     translated_text.append('')
                     break
                 elif 'error' in response or 'translation_text' not in response[0]:
                     print("ERROR", response)
-                    print(f"Retrying, {i+1}/5")
-                    i += 1
+                    print(f"Waiting 10s and retrying {j+1}/5")
+                    j += 1
                     time.sleep(10)
                 else:
+                    print("Response is valid. Added translation to array")
                     translated_text.extend(res['translation_text'] for res in response)
                     break
-            if i == 5:
+            if j == 5:
                 return { "statusCode": "500", "body": json.dumps({"result": response}) }
         print('translated text', translated_text)
 

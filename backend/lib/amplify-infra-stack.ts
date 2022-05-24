@@ -62,11 +62,10 @@ export class AmplifyInfraStack extends cdk.Stack {
       }),
       environmentVariables: {
         'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
-        'ENDPOINT': `CHANGE_WITH_LAMBDA_FUNCTION_URL`, // ${myApiGW.url}translate
+        'ENDPOINT': 'CHANGE_TO_LAMBDA_FUNCTION_URL', // ⚠️ CHANGE AFTER DEPLOYMENT
         'REGION': this.region
       }
     });
     amplifyApp.addBranch("main");
-
   }
 }
