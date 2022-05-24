@@ -98,8 +98,8 @@ class App extends Component {
     const config = {
       method: 'POST',
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        'Accept': 'application/octet-stream',
+        'Content-Type': 'application/octet-stream',
       },
       body: formData
     };
