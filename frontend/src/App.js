@@ -1,5 +1,4 @@
 import './App.css';
-import axios from 'axios'
 import React, { Component } from 'react';
 
 const langs = {
@@ -80,7 +79,7 @@ class App extends Component {
     this.setState({ langTarget: event.target.value });
   }
 
-  onFileUpload = () => {
+  onFileUpload = async () => {
 
     if (!this.state.selectedFile || this.state.incorrectExtension || !this.state.langSource || !this.state.langTarget) {
       return
@@ -120,14 +119,6 @@ class App extends Component {
       this.setState({ buttonClicked: false });
       this.setState({ APIResult: 'ERROR in request' });
     }
-    /*
-    axios.post(`${process.env.REACT_APP_ENDPOINT}`, formData)
-      .then(response => {
-        console.log(response.data);
-        this.setState({ buttonClicked: false });
-        this.setState({ APIResult: response.data.result });
-      })
-    */
   }
 
   fileData = () => {
