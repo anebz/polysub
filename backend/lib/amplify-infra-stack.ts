@@ -1,8 +1,12 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as sns from '@aws-cdk/aws-sns';
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as amplify from '@aws-cdk/aws-amplify';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
+import * as subs from '@aws-cdk/aws-sns-subscriptions';
+import * as actions from '@aws-cdk/aws-cloudwatch-actions';
 import { PythonFunction } from "@aws-cdk/aws-lambda-python";
 
 const GITHUB_REPO = 'polysub'
@@ -12,26 +16,39 @@ export class AmplifyInfraStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // Amplify app
+    const amplifyApp = new amplify.App(this, "polysub-app", {
+      sourceCodeProvider: new amplify.GitHubSourceCodeProvider({
+        owner: "anebz",
+        repository: GITHUB_REPO,
+        oauthToken: cdk.SecretValue.secretsManager('github-token')
+      }),
+      environmentVariables: {
+        'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
+        'ENDPOINT': 'CHANGE_TO_LAMBDA_FUNCTION_URL', // ⚠️ CHANGE AFTER DEPLOYMENT
+        'REGION': this.region
+      }
+    });
+    amplifyApp.addBranch("main");
+
     // S3 bucket
     const myBucket = new s3.Bucket(this, 'polysub-bucket', {
       bucketName: 'polysub-bucket',
       versioned: false,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      lifecycleRules: [
-        {
-          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
-          expiration: cdk.Duration.days(1)
-        }
-      ]
+      lifecycleRules: [{
+        abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        expiration: cdk.Duration.days(1)
+      }]
     });
 
     // DynamoDB table
     const dDBTable = new dynamodb.Table(this, 'PolySubDDB', {
-      billingMode: dynamodb.BillingMode.PROVISIONED,
       readCapacity: 1,
       writeCapacity: 1,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      billingMode: dynamodb.BillingMode.PROVISIONED,
       partitionKey: { name: 'date', type: dynamodb.AttributeType.STRING },
       pointInTimeRecovery: true,
     });
@@ -53,19 +70,28 @@ export class AmplifyInfraStack extends cdk.Stack {
     myBucket.grantWrite(myLambda);
     dDBTable.grantWriteData(myLambda);
 
-    // Amplify app
-    const amplifyApp = new amplify.App(this, "polysub-app", {
-      sourceCodeProvider: new amplify.GitHubSourceCodeProvider({
-        owner: "anebz",
-        repository: GITHUB_REPO,
-        oauthToken: cdk.SecretValue.secretsManager('github-token') // token stored in aws secrets manager
+    // Alarm that gets triggered with code errors and timeouts
+    // https://docs.aws.amazon.com/lambda/latest/dg/monitoring-metrics.html
+    const myAlarm = new cloudwatch.Alarm(this, 'lambda-errors-alarm', {
+      metric: new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Errors',
+        period: cdk.Duration.minutes(10),
+        statistic: 'Sum',
+        dimensionsMap: { FunctionName: myLambda.functionName },
       }),
-      environmentVariables: {
-        'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
-        'ENDPOINT': 'CHANGE_TO_LAMBDA_FUNCTION_URL', // ⚠️ CHANGE AFTER DEPLOYMENT
-        'REGION': this.region
-      }
+      threshold: 1,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      alarmDescription: 'Alarm if the SUM of Errors is greater than or equal to the threshold (1) for 1 evaluation period',
     });
-    amplifyApp.addBranch("main");
+
+    // SNS topic
+    const topic = new sns.Topic(this, 'polysub-sns-topic');
+    // CloudWatch Alarm will trigger SNS topic
+    myAlarm.addAlarmAction(new actions.SnsAction(topic));
+    // SNS topic will trigger email
+    topic.addSubscription(new subs.EmailSubscription("anebzt@protonmail.com"));
+
   }
 }
