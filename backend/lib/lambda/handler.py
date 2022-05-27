@@ -131,7 +131,7 @@ def get_hg_translations(lang_source, lang_target, joined_text):
     return translated_text
 
 
-def upload_to_s3(file_name, lang_target):
+def upload_to_s3(file_name, lang_target, final_str):
     print("Uploading to S3")
     new_file_name = file_name.replace('.srt', f'-{lang_target}.srt')
     with open(f"/tmp/{new_file_name}", 'w') as f:
@@ -174,7 +174,7 @@ def handler(event, context):
     final_str = srt.compose(subs)
 
     ## upload to s3 and obtain presigned url
-    presigned_url = upload_to_s3(file_name, lang_target)
+    presigned_url = upload_to_s3(file_name, lang_target, final_str)
 
     ## Add analytics data to DynamoDB table ##
     dbStatus = add_analytics_to_ddb(lang_source, lang_target, len(joined_text))
