@@ -62,6 +62,7 @@ def join_all_text(parsed_data: list):
         joined_text = joined_text[:-1]
     return joined_text
 
+
 def parse_request_body(body):
     try:
         #TODO handle different encodings
@@ -82,7 +83,7 @@ def parse_request_body(body):
     subs = list(srt.parse(file_contents))
     joined_text = [sub.content for sub in subs]
     print('num_subtitles', len(file_contents))
-    return lang_source, lang_target, joined_text
+    return lang_source, lang_target, file_name, joined_text, subs
 
 
 def get_hg_translations(lang_source, lang_target, joined_text):
@@ -162,7 +163,7 @@ def handler(event, context):
         print("ERROR: HTTP request is not POST")
         raise requests.exceptions.HTTPError
 
-    lang_source, lang_target, joined_text = parse_request_body(event['body'])
+    lang_source, lang_target, file_name, joined_text, subs = parse_request_body(event['body'])
 
     ## Translation step ##
     translated_text = get_hg_translations(lang_source, lang_target, joined_text)
