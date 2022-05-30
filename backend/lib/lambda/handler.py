@@ -8,8 +8,8 @@ import base64
 import datetime
 import requests
 
-s3 = boto3.client("s3")
-ddb = boto3.client('dynamodb', region_name='eu-central-1')
+s3 = boto3.client('s3', region_name=os.environ['AWS_DEFAULT_REGION'])
+ddb = boto3.client('dynamodb', region_name=os.environ['AWS_DEFAULT_REGION'])
 
 # TODO improve sentence joining algorithm
 def join_all_text(parsed_data: list):
@@ -139,7 +139,7 @@ def upload_to_s3(file_name, lang_target, final_str):
     with open(f"/tmp/{new_file_name}", 'w') as f:
         f.write(final_str)
     s3.upload_file(f"/tmp/{new_file_name}", os.environ['S3_BUCKET_NAME'], new_file_name)
-    presigned_url = s3.generate_presigned_url('get_object',Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': new_file_name}, ExpiresIn=300) # 5mins
+    presigned_url = s3.generate_presigned_url('get_object', Params={'Bucket': os.environ['S3_BUCKET_NAME'], 'Key': new_file_name}, ExpiresIn=300) # 5mins
     print("presigned URL:", presigned_url)
     return presigned_url
 

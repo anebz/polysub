@@ -34,7 +34,6 @@ export class AmplifyInfraStack extends cdk.Stack {
 
     // S3 bucket
     const myBucket = new s3.Bucket(this, 'polysub-bucket', {
-      bucketName: 'polysub-bucket',
       versioned: false,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -70,15 +69,13 @@ export class AmplifyInfraStack extends cdk.Stack {
     myBucket.grantWrite(myLambda);
     dDBTable.grantWriteData(myLambda);
 
-    const s3GetSecrets = new iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: ['arn:aws:s3:::ane-secrets/*'],
-    });
-
-    // 👇 add the policy to the Function's role
+    // Add Lambda role to access secrets
     myLambda.role?.attachInlinePolicy(
       new iam.Policy(this, 'get-ane-secrets-policy', {
-        statements: [s3GetSecrets],
+        statements: [new iam.PolicyStatement({
+          actions: ['s3:GetObject'],
+          resources: ['arn:aws:s3:::ane-secrets/*'],
+        })],
       }),
     );
 
