@@ -12,55 +12,26 @@ s3 = boto3.client('s3', region_name=os.environ['AWS_DEFAULT_REGION'])
 ddb = boto3.client('dynamodb', region_name=os.environ['AWS_DEFAULT_REGION'])
 
 # TODO improve sentence joining algorithm
-def join_all_text(parsed_data: list):
-    joined_text = ''
-    prev_time = ''
-    it = 0
-    for id, vals in parsed_data.items():
+def parse_sub_text(subs: list):
 
-        text = vals['text'].strip()
-
-        if len(joined_text) > 0 and joined_text[-1] != '\n':
-            joined_text += ' '
-        
-        '''
-        # get current time, first time of this line
-        current_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[0]
-
-        if prev_time == '':
-            # take the last time of the sequence
-            try:
-                prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
-            except Exception:
-                prev_time = current_time
-
-        # check if a lot of time has passed since the last text. if so, this is a new sentence
-        tdelta = (datetime.strptime(current_time, '%H:%M:%S') - datetime.strptime(prev_time, '%H:%M:%S')).total_seconds()
-        if int(tdelta) > 10 and joined_text[-1] != '\n':
-            joined_text += '\n' + text
-            it += 1
+    # Parse data -> obtain joined_text and mapping
+    chunk = 0
+    text_mapping = {0: 0}
+    joined_text = []
+    tmp_text = subs[0].content
+    for i in range(1, len(subs)):
+        if len(tmp_text + subs[i].content) < 110 and\
+            subs[i].start - subs[i-1].end < datetime.timedelta(milliseconds=200):
+            tmp_text += f'\n{subs[i].content}'
         else:
-            joined_text += text
-        '''
-        joined_text += text # TEMPORARY
-        parsed_data[id]['map'] = it
+            joined_text.append(tmp_text)
+            tmp_text = subs[i].content
+            chunk += 1
+        text_mapping[i] = chunk
 
-        # check if text ends in punctuation. if so, it's the end of the sentence
-        if text.rstrip('</i>')[-1] in ['.', '?', '!', ')']:
-            joined_text += '\n'
-            it += 1
-        
-        '''
-        try:
-            prev_time = re.findall(r'(\d\d:\d\d:\d\d)', vals['time'])[-1]
-        except Exception:
-            prev_time = current_time
-        '''
-
-    joined_text = joined_text.split('\n')
-    if joined_text[-1] == '':
-        joined_text = joined_text[:-1]
-    return joined_text
+    joined_text.append(tmp_text)
+    text_mapping[i] = chunk - 1
+    return joined_text, text_mapping
 
 
 def parse_request_body(body):
@@ -81,9 +52,9 @@ def parse_request_body(body):
 
     ## Parse input content into subtitles format ##
     subs = list(srt.parse(file_contents))
-    joined_text = [sub.content for sub in subs]
-    print('num_subtitles', len(file_contents))
-    return lang_source, lang_target, file_name, joined_text, subs
+    joined_text, text_mapping = parse_sub_text(subs)
+    print('num_subtitles', len(joined_text))
+    return lang_source, lang_target, file_name, joined_text, subs, text_mapping
 
 
 def get_hg_translations(lang_source, lang_target, joined_text):
@@ -165,14 +136,14 @@ def handler(event, context):
         print("ERROR: HTTP request is not POST")
         raise requests.exceptions.HTTPError
 
-    lang_source, lang_target, file_name, joined_text, subs = parse_request_body(event['body'])
+    lang_source, lang_target, file_name, joined_text, subs, text_mapping = parse_request_body(event['body'])
 
     ## Translation step ##
     translated_text = get_hg_translations(lang_source, lang_target, joined_text)
 
     ## parse back to subtitle format ##
-    for sub, translated in zip(subs, translated_text):
-        sub.content = translated
+    for i in range(len(subs)):
+        subs[i].content = translated_text[text_mapping[i]]
     final_str = srt.compose(subs)
 
     ## upload to s3 and obtain presigned url
