@@ -88,9 +88,11 @@ def parse_request_body(body):
 
 def get_hg_translations(lang_source, lang_target, joined_text):
     API_URL = f"https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-{lang_source}-{lang_target}"
+    data = s3.get_object(Bucket='ane-secrets', Key='hg_api_token.txt')
+    HG_API_KEY = data['Body'].read().decode("utf-8")
     headers = {
         "User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
-        "Authorization": f"Bearer {os.environ['HG_API_KEY']}"
+        "Authorization": f"Bearer {HG_API_KEY}"
     }
 
     translated_text = []

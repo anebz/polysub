@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as iam from "@aws-cdk/aws-iam";
 import * as sns from '@aws-cdk/aws-sns';
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as amplify from '@aws-cdk/aws-amplify';
@@ -62,7 +63,6 @@ export class AmplifyInfraStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_8,
       environment: {
         "S3_BUCKET_NAME": myBucket.bucketName,
-        "HG_API_KEY": cdk.SecretValue.secretsManager('hg-api-token').toString(),
         'DDB_TABLE_NAME': dDBTable.tableName
       },
     });
@@ -70,13 +70,25 @@ export class AmplifyInfraStack extends cdk.Stack {
     myBucket.grantWrite(myLambda);
     dDBTable.grantWriteData(myLambda);
 
+    const s3GetSecrets = new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: ['arn:aws:s3:::ane-secrets/*'],
+    });
+
+    // 👇 add the policy to the Function's role
+    myLambda.role?.attachInlinePolicy(
+      new iam.Policy(this, 'get-ane-secrets-policy', {
+        statements: [s3GetSecrets],
+      }),
+    );
+
     // Alarm that gets triggered with code errors and timeouts
     // https://docs.aws.amazon.com/lambda/latest/dg/monitoring-metrics.html
     const myAlarm = new cloudwatch.Alarm(this, 'lambda-errors-alarm', {
       metric: new cloudwatch.Metric({
         namespace: 'AWS/Lambda',
         metricName: 'Errors',
-        period: cdk.Duration.minutes(10),
+        period: cdk.Duration.minutes(1),
         statistic: 'Sum',
         dimensionsMap: { FunctionName: myLambda.functionName },
       }),
