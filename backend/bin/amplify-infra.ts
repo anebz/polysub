@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
-import { AmplifyInfraStack } from '../lib/amplify-infra-stack';
+import * as cdk from 'aws-cdk-lib';
+import { PolySubStack } from '../lib/amplify-infra-stack';
 
 const app = new cdk.App();
-new AmplifyInfraStack(app, 'PolySubStack', {
+new PolySubStack(app, 'PolySubStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -20,6 +20,6 @@ new AmplifyInfraStack(app, 'PolySubStack', {
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
 
-new AmplifyInfraStack(app, 'PolySubStack-dev', {
+new PolySubStack(app, 'PolySubStack-dev', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'eu-west-1' }
 });

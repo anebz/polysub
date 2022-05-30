@@ -1,20 +1,22 @@
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as iam from "@aws-cdk/aws-iam";
-import * as sns from '@aws-cdk/aws-sns';
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as amplify from '@aws-cdk/aws-amplify';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
-import * as subs from '@aws-cdk/aws-sns-subscriptions';
-import * as actions from '@aws-cdk/aws-cloudwatch-actions';
-import { PythonFunction } from "@aws-cdk/aws-lambda-python";
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
+
+import * as amplify from '@aws-cdk/aws-amplify-alpha';
+import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
 
 const GITHUB_REPO = 'polysub'
 const GITHUB_REPO_PATH = 'frontend'
 
-export class AmplifyInfraStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class PolySubStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // Amplify app

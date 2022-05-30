@@ -7,7 +7,7 @@
 test('SQS Queue Created', () => {
 //   const app = new cdk.App();
 //     // WHEN
-//   const stack = new AmplifyInfra.AmplifyInfraStack(app, 'MyTestStack');
+//   const stack = new AmplifyInfra.PolySubStack(app, 'MyTestStack');
 //     // THEN
 //   const template = Template.fromStack(stack);
 
