@@ -35,9 +35,15 @@ def parse_sub_text(subs: list):
 
 
 def parse_request_body(body):
+    # decode body, utf_8_sig should work for everything, including accents
     try:
-        #TODO handle different encodings
-        req_body = base64.b64decode(body).decode('latin-1')
+        req_body = base64.b64decode(body).decode('utf_8_sig')
+    except Exception as e:
+        print("ERROR: ", e)
+        raise e
+    
+    # find filename, lang_source and lang_target with regex
+    try:
         file_name = re.search(r'filename="(.*)"', req_body)[1]
         lang_source, lang_target = re.findall(r'name="lang_source".*XX_(\w*)_XX?.*name="lang_target".*XX_(\w*)_XX', req_body, re.DOTALL)[0]
         file_contents = '\n'.join(req_body.split('\r\n')[12:-2])
