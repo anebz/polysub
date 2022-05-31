@@ -14,5 +14,5 @@ The Polysub app translates your subtitles. Just upload the file, select the sour
 
 ### AWS Architecture diagram
 
-![ ](polysub-diagram.png)
+![ ](polysub-architecture.png)
 
