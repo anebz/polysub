@@ -185,6 +185,10 @@ class App extends Component {
         <header className="App-header">
           <h1>Translate subtitle files 🎥</h1>
           <div>
+            <p>Project made by <a href='https://anebz.eu/'>Ane Berasategi</a></p>
+            <p>Check the repository here: <a href='https://github.com/anebz/polysub'>polysub</a></p>
+          </div>
+          <div>
             <h3>Upload your file here</h3>
             <div>
               <input type="file" onChange={this.onFileChange} />
