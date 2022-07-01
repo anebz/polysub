@@ -11,7 +11,6 @@ import requests
 s3 = boto3.client('s3', region_name=os.environ['AWS_DEFAULT_REGION'])
 ddb = boto3.client('dynamodb', region_name=os.environ['AWS_DEFAULT_REGION'])
 
-# TODO improve sentence joining algorithm
 def parse_sub_text(subs: list):
 
     # Parse data -> obtain joined_text and mapping
