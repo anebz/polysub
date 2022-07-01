@@ -1,4 +1,6 @@
 import { Construct } from 'constructs';
+import * as fs from "fs";
+import * as path from "path";
 import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from "aws-cdk-lib/aws-iam";
@@ -12,8 +14,7 @@ import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as amplify from '@aws-cdk/aws-amplify-alpha';
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha";
 
-const GITHUB_REPO = 'polysub'
-const GITHUB_REPO_PATH = 'frontend'
+const GITHUB_TOKEN = fs.readFileSync(path.join(__dirname, "/../github_oauth_token.txt"), "utf8");
 
 export class PolySubStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,11 +24,11 @@ export class PolySubStack extends cdk.Stack {
     const amplifyApp = new amplify.App(this, "polysub-app", {
       sourceCodeProvider: new amplify.GitHubSourceCodeProvider({
         owner: "anebz",
-        repository: GITHUB_REPO,
-        oauthToken: cdk.SecretValue.secretsManager('github-token')
+        repository: "polysub",
+        oauthToken: cdk.SecretValue.unsafePlainText(GITHUB_TOKEN)
       }),
       environmentVariables: {
-        'AMPLIFY_MONOREPO_APP_ROOT': GITHUB_REPO_PATH,
+        'AMPLIFY_MONOREPO_APP_ROOT': "frontend",
         'ENDPOINT': 'CHANGE_TO_LAMBDA_FUNCTION_URL', // ⚠️ CHANGE AFTER DEPLOYMENT
         'REGION': this.region
       }
@@ -67,7 +68,6 @@ export class PolySubStack extends cdk.Stack {
         'DDB_TABLE_NAME': dDBTable.tableName
       },
     });
-    myBucket.grantRead(myLambda);
     myBucket.grantWrite(myLambda);
     dDBTable.grantWriteData(myLambda);
 

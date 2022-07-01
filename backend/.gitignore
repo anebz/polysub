@@ -27,3 +27,5 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+
+github_oauth_token.txt
