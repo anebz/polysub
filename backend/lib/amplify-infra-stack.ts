@@ -7,6 +7,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { BillingAlarm } from 'aws-cdk-billing-alarm';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
@@ -103,6 +104,12 @@ export class PolySubStack extends cdk.Stack {
     myAlarm.addAlarmAction(new actions.SnsAction(topic));
     // SNS topic will trigger email
     topic.addSubscription(new subs.EmailSubscription("anebzt@protonmail.com"));
+
+    // Billing alarm if costs exceed $3
+    new BillingAlarm(this, 'PolySubBillingAlarm', {
+      monthlyThreshold: 3,
+      emails: ["anebzt@protonmail.com"],
+    });
 
   }
 }
